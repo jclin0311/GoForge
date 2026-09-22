@@ -1,0 +1,114 @@
+global:
+  namespace: goforge
+  imageRegistry: goforge
+  imageTag: v1.0.0
+  imagePullPolicy: IfNotPresent
+
+replicaCount:
+  apiGateway: 3
+  modelService: 3
+  authService: 2
+  metricsService: 2
+
+resources:
+  apiGateway:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "400m"
+  modelService:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  authService:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  metricsService:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+autoscaling:
+  enabled: true
+  apiGateway:
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilization: 70
+  modelService:
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  authService:
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilization: 70
+
+service:
+  type: ClusterIP
+  ports:
+    apiGateway: 50050
+    modelService: 50051
+    authService: 50052
+    metricsService: 50053
+    prometheus: 9090
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: api.goforge.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api-gateway
+
+istio:
+  enabled: true
+  mtls:
+    mode: STRICT
+  gateway:
+    enabled: true
+  virtualService:
+    enabled: true
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+
+monitoring:
+  prometheus:
+    enabled: true
+    scrapeInterval: 30s
+  grafana:
+    enabled: true
+    adminPassword: "admin123"
+
+config:
+  environment: production
+  logLevel: info
+  rateLimit:
+    requestsPerSecond: 100
+    burstSize: 200
+  circuitBreaker:
+    maxRequests: 10
+    interval: 60s
+    timeout: 30s
+  tracing:
+    enabled: true
+    endpoint: jaeger-collector.monitoring:14268

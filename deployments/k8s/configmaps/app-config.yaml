@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: goforge
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "info"
+  K8S_NAMESPACE: "goforge"
+  K8S_SERVICE_DISCOVERY: "true"
+  K8S_IN_CLUSTER: "true"
+  PROMETHEUS_ENABLED: "true"
+  TRACING_ENABLED: "true"
+  TRACING_ENDPOINT: "jaeger-collector.monitoring:14268"
+  RATE_LIMIT_RPS: "100"
+  RATE_LIMIT_BURST: "200"
+  CB_MAX_REQUESTS: "10"
+  CB_INTERVAL: "60s"
+  CB_TIMEOUT: "30s"

@@ -1,0 +1,9 @@
+{
+  "dashboard": {
+    "title": "GoForge AI Platform - Complete Monitoring",
+    "tags": ["goforge", "microservices", "grpc"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "panels": []
+  }
+}

@@ -1,0 +1,47 @@
+{{- range $service := list "api-gateway" "model-service" "auth-service" "metrics-service" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $service }}
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    app: {{ $service }}
+    version: v1
+spec:
+  replicas: {{ index $.Values.replicaCount (include "camelCase" $service) }}
+  selector:
+    matchLabels:
+      app: {{ $service }}
+  template:
+    metadata:
+      labels:
+        app: {{ $service }}
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ $.Values.service.ports.prometheus }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: {{ $service }}
+        image: {{ $.Values.global.imageRegistry }}/{{ $service }}:{{ $.Values.global.imageTag }}
+        imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ index $.Values.service.ports (include "camelCase" $service) }}
+          name: grpc
+          protocol: TCP
+        - containerPort: {{ $.Values.service.ports.prometheus }}
+          name: metrics
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: {{ $service }}
+        - name: SERVICE_VERSION
+          value: {{ $.Values.global.imageTag }}
+        envFrom:
+        - configMapRef:
+            name: app-config
+        resources:
+          {{- toYaml (index $.Values.resources (include "camelCase" $service)) | nindent 10 }}
+{{- end }}

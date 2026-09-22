@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package goforge.model;
+
+option go_package = "github.com/goforge/ai-platform/pkg/proto;proto";
+
+// ModelService handles AI model inference requests
+service ModelService {
+  rpc Predict(PredictRequest) returns (PredictResponse);
+  rpc BatchPredict(BatchPredictRequest) returns (BatchPredictResponse);
+  rpc GetModelInfo(ModelInfoRequest) returns (ModelInfoResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message PredictRequest {
+  string model_id = 1;
+  string model_version = 2;
+  bytes input_data = 3;
+  map<string, string> parameters = 4;
+  string request_id = 5;
+}
+
+message PredictResponse {
+  string request_id = 1;
+  bytes output_data = 2;
+  float confidence = 3;
+  int64 inference_time_ms = 4;
+  map<string, string> metadata = 5;
+}
+
+message BatchPredictRequest {
+  string model_id = 1;
+  string model_version = 2;
+  repeated bytes input_batch = 3;
+  map<string, string> parameters = 4;
+  string request_id = 5;
+}
+
+message BatchPredictResponse {
+  string request_id = 1;
+  repeated PredictResponse predictions = 2;
+  int64 total_inference_time_ms = 3;
+}
+
+message ModelInfoRequest {
+  string model_id = 1;
+  string model_version = 2;
+}
+
+message ModelInfoResponse {
+  string model_id = 1;
+  string model_version = 2;
+  string model_type = 3;
+  string framework = 4;
+  map<string, string> metadata = 5;
+  ModelStatus status = 6;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string status = 2;
+  map<string, string> details = 3;
+}
+
+enum ModelStatus {
+  MODEL_STATUS_UNKNOWN = 0;
+  MODEL_STATUS_LOADING = 1;
+  MODEL_STATUS_READY = 2;
+  MODEL_STATUS_ERROR = 3;
+  MODEL_STATUS_UNLOADING = 4;
+}
